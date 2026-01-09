@@ -10,21 +10,17 @@ __pycache__/
 *.so
 .Python
 
-# Models and Data
-*.pkl
+# Keep these model files - needed for production!
+# classifier_model.pkl
+# scaler.pkl
+
+# Old model formats (don't need these)
 *.pth
-*.joblib
-classifier_model.pkl
-scaler.pkl
 anemia_model.pth
 anemia_model_simple.pkl
 
 # Uploads
 uploads/
-*.jpg
-*.jpeg
-*.png
-*.gif
 
 # IDE
 .vscode/
