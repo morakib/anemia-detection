@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anemia Detection - ML Model</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c7c9cf 0%, #131313 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-section.active {
+            border-color: #667eea;
+            background: #e8ebff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 13px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.anemic {
+            background: #ffe8e8;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .result.non-anemic {
+            background: #e8ffe8;
+            border-left: 4px solid #51cf66;
+        }
+
+        .result.loading {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .result.anemic h3 {
+            color: #ff6b6b;
+        }
+
+        .result.non-anemic h3 {
+            color: #51cf66;
+        }
+
+        .result.loading h3 {
+            color: #ff9800;
+        }
+
+        .result-detail {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .confidence {
+            font-weight: 600;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            background: #ffe8e8;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .info-box {
+            background: #f0f2ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Anemia Detection</h1>
+        <p class="subtitle">ML-Powered Image Analysis</p>
+
+        <div class="info-box">
+            Upload an image of eyes or fingernails to detect anemia
+        </div>
+
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Click to upload or drag image here</div>
+            <div class="upload-hint">PNG, JPG, GIF up to 16MB</div>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="preview" id="preview">
+            <img id="previewImg" alt="Preview">
+        </div>
+
+        <div class="result loading" id="resultLoading" style="display: none;">
+            <h3><span class="loading-spinner"></span>Analyzing...</h3>
+        </div>
+
+        <div class="result" id="result"></div>
+        <div class="error" id="error"></div>
+
+        <button id="resetBtn" style="display: none;">Upload Another Image</button>
+    </div>
+
+    <script>
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const previewImg = document.getElementById('previewImg');
+        const result = document.getElementById('result');
+        const resultLoading = document.getElementById('resultLoading');
+        const errorDiv = document.getElementById('error');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Click to upload
+        uploadSection.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('active');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('active');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('active');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+
+            const file = files[0];
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+                uploadSection.style.display = 'none';
+                resetBtn.style.display = 'block';
+                errorDiv.style.display = 'none';
+                result.style.display = 'none';
+
+                // Predict
+                predictImage(file);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function predictImage(file) {
+            resultLoading.style.display = 'block';
+            result.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    resultLoading.style.display = 'none';
+
+                    if (data.error) {
+                        showError(data.error);
+                    } else {
+                        showResult(data);
+                    }
+                })
+                .catch(error => {
+                    resultLoading.style.display = 'none';
+                    showError('Error analyzing image. Please try again.');
+                    console.error('Error:', error);
+                });
+        }
+
+        function showResult(data) {
+            const isAnemic = data.prediction === 'Anemic';
+            result.className = 'result ' + (isAnemic ? 'anemic' : 'non-anemic');
+            result.innerHTML = `
+                <h3>${data.prediction}</h3>
+                <div class="result-detail">
+                    <div class="confidence">Confidence: ${data.confidence}%</div>
+                </div>
+            `;
+            result.style.display = 'block';
+        }
+
+        function showError(message) {
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.style.display = 'block';
+        }
+
+        resetBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            preview.style.display = 'none';
+            result.style.display = 'none';
+            resultLoading.style.display = 'none';
+            errorDiv.style.display = 'none';
+            uploadSection.style.display = 'block';
+            resetBtn.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>

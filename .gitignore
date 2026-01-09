@@ -1,0 +1,48 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Models and Data
+*.pkl
+*.pth
+*.joblib
+classifier_model.pkl
+scaler.pkl
+anemia_model.pth
+anemia_model_simple.pkl
+
+# Uploads
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+training_output.log
+training_log.txt
+training_metrics.txt
+
+# Temp
+.pytest_cache/
+.coverage
+htmlcov/
