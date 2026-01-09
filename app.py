@@ -8,17 +8,18 @@ import cv2
 
 # Configuration
 IMG_SIZE = 224
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
 # Initialize Flask app
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_PATH, 'uploads')
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Feature extraction model path
-SCALER_PATH = r"c:\Users\morak\CODE\ANEMIA_PROJ\scaler.pkl"
-MODEL_PATH = r"c:\Users\morak\CODE\ANEMIA_PROJ\classifier_model.pkl"
+SCALER_PATH = os.path.join(BASE_PATH, "scaler.pkl")
+MODEL_PATH = os.path.join(BASE_PATH, "classifier_model.pkl")
 
 def extract_features(image_array):
     """Extract features from image using histogram and edge detection."""
@@ -61,15 +62,25 @@ def extract_features(image_array):
 
 def load_models():
     """Load scaler and classifier if they exist."""
+    print(f"Looking for models at: {BASE_PATH}")
+    print(f"MODEL_PATH: {MODEL_PATH}")
+    print(f"SCALER_PATH: {SCALER_PATH}")
+    print(f"Model exists: {os.path.exists(MODEL_PATH)}")
+    print(f"Scaler exists: {os.path.exists(SCALER_PATH)}")
+    
     try:
         if os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH):
+            print("Loading model and scaler...")
             with open(MODEL_PATH, 'rb') as f:
                 model = pickle.load(f)
             with open(SCALER_PATH, 'rb') as f:
                 scaler = pickle.load(f)
+            print("✅ Models loaded successfully!")
             return model, scaler
-    except:
-        pass
+        else:
+            print("❌ Model or scaler files not found!")
+    except Exception as e:
+        print(f"❌ Error loading models: {e}")
     
     return None, None
 
@@ -158,13 +169,11 @@ if __name__ == '__main__':
     print("🏥 ANEMIA DETECTION - Web Application")
     print("=" * 70)
     if classifier is None:
-        print("Model not trained yet!")
+        print("⚠️ Model not trained yet!")
         print("   Please run: python train_sklearn_model.py")
     else:
-        print("Model loaded successfully!")
+        print("✅ Model loaded successfully!")
     print()
-    print(" Open your browser: http://localhost:5000")
-    print(" Upload full eye or fingernail images")
-    print("Press Ctrl+C to stop")
-    print("=" * 70)
-    app.run(debug=False, port=5000, host='0.0.0.0')
+    print("🌐 Starting server...")
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, port=port, host='0.0.0.0')
